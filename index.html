@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Study Command Center</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Rajdhani:wght@500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#050002;--fg:#fff0f2;--dim:#b08a92;--ac:#ff1f3d;--ac2:#ff6a2b;--panel:rgba(26,2,8,.55);box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+:root[data-t=magenta]{--ac:#ff2bd6;--ac2:#00f0ff}
+:root[data-t=green]{--ac:#39ff88;--ac2:#00c8ff}
+:root[data-t=amber]{--ac:#ffb400;--ac2:#ff3d3d}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--fg);font-family:"Segoe UI",system-ui,-apple-system,Arial,sans-serif}
+#bg{position:fixed;inset:0;width:100%;height:100%;z-index:0}
+.wrap{position:relative;z-index:1;max-width:1000px;margin:0 auto;padding:18px 14px 50px}
+h1{font-family:"Courier New",monospace;letter-spacing:.18em;font-size:clamp(20px,5vw,34px);margin:6px 0;text-align:center;color:var(--ac);text-shadow:0 0 18px var(--ac);animation:flick 5s infinite}
+@keyframes flick{0%,92%,100%{opacity:1}94%{opacity:.6}96%{opacity:1}98%{opacity:.7}}
+.sub{text-align:center;color:var(--dim);font-family:"Courier New",monospace;font-size:12px;letter-spacing:.2em}
+.dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#555;margin-right:6px}
+.on .dot{background:#39ff88;box-shadow:0 0 10px #39ff88;animation:pulse 1.2s infinite}
+@keyframes pulse{50%{transform:scale(1.7);opacity:.5}}
+.panel{background:var(--panel);border:1px solid color-mix(in srgb,var(--ac) 40%,transparent);border-radius:14px;padding:16px;margin-top:16px;backdrop-filter:blur(8px);box-shadow:0 0 24px color-mix(in srgb,var(--ac) 15%,transparent),inset 0 0 30px rgba(0,0,0,.4);position:relative;overflow:hidden}
+.panel::after{content:"";position:absolute;left:0;right:0;height:2px;top:-2px;background:linear-gradient(90deg,transparent,var(--ac),transparent);animation:scan 4s linear infinite;opacity:.5}
+@keyframes scan{to{top:102%}}
+.panel h2{margin:0 0 12px;font:600 13px "Courier New",monospace;letter-spacing:.25em;color:var(--ac)}
+.clock{font:700 clamp(40px,11vw,86px) "Courier New",monospace;text-align:center;color:#fff;text-shadow:0 0 20px var(--ac),0 0 40px var(--ac2)}
+.cd{text-align:center;color:var(--dim);font-family:"Courier New",monospace}
+.cd b{color:var(--ac)}
+.bar{height:6px;background:#10202f;border-radius:4px;margin:10px 0;overflow:hidden}
+.bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--ac),var(--ac2));box-shadow:0 0 12px var(--ac);transition:width 1s linear}
+.quote{min-height:56px;text-align:center;font-size:clamp(15px,3.6vw,22px);margin-top:10px;color:var(--fg)}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+label{display:block;font:11px "Courier New",monospace;letter-spacing:.15em;color:var(--dim);margin-bottom:4px}
+select,input[type=text],input[type=number]{width:100%;background:#071221;color:var(--fg);border:1px solid #1d3b52;border-radius:8px;padding:9px;font-size:14px;outline:none;transition:.2s}
+select:focus,input:focus{border-color:var(--ac);box-shadow:0 0 12px color-mix(in srgb,var(--ac) 50%,transparent)}
+input[type=range]{width:100%;accent-color:var(--ac)}
+.key{cursor:pointer;font:700 13px "Courier New",monospace;letter-spacing:.12em;color:var(--fg);background:linear-gradient(180deg,#0e2236,#07111e);border:1px solid var(--ac);border-radius:10px;padding:11px 16px;margin:4px;position:relative;transition:transform .18s,box-shadow .18s,background .18s,color .18s;box-shadow:0 4px 0 #031018,0 0 8px color-mix(in srgb,var(--ac) 30%,transparent)}
+.key:hover{transform:translateY(-3px) scale(1.06) rotate(-1deg);color:#001018;background:var(--ac);box-shadow:0 7px 0 #031018,0 0 26px var(--ac),0 0 50px var(--ac2)}
+.key:active{transform:translateY(2px) scale(.97);box-shadow:0 1px 0 #031018,0 0 30px var(--ac)}
+.key.big{font-size:16px;padding:14px 28px;border-color:var(--ac2)}
+.key.live{background:var(--ac2);color:#001018;animation:pulse2 1.5s infinite}
+@keyframes pulse2{50%{box-shadow:0 0 36px var(--ac2)}}
+.row{display:flex;gap:8px;align-items:center;margin:6px 0}
+.row input[type=text]{flex:1}
+.mini{padding:7px 10px;font-size:12px;margin:0}
+.chips{text-align:center;margin-top:12px}
+.note{font-size:12px;color:var(--dim);line-height:1.6}
+.wrap{max-width:1800px;width:100%;min-height:100vh;padding:26px clamp(14px,3vw,48px) 60px}
+@media(min-width:1000px){.wrap{display:grid;grid-template-columns:1.1fr 1fr;gap:6px 22px;align-items:start}.wrap>h1,.wrap>.sub{grid-column:1/-1}}
+h1{font-size:clamp(26px,5vw,64px)}.sub{font-size:15px}
+.panel{padding:24px}.panel h2{font-size:17px}
+.clock{font-size:clamp(56px,11vw,150px)}.cd{font-size:clamp(15px,2vw,24px)}
+.quote{font-size:clamp(20px,2.8vw,38px);min-height:90px;line-height:1.35}
+.key{font-size:16px;padding:15px 24px}.key.big{font-size:20px;padding:18px 40px}.key.mini{padding:9px 14px;font-size:14px}
+select,input[type=text],input[type=number]{font-size:17px;padding:12px}label{font-size:13px}
+.grid{grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:16px}
+#list{max-height:68vh;overflow:auto;padding-right:6px}.note{font-size:15px}
+.wrap>.panel:nth-of-type(4),.wrap>.panel:nth-of-type(5){grid-column:1/-1}
+#ailog{height:280px;overflow:auto;border:1px solid #1d3b52;border-radius:10px;padding:10px;background:rgba(2,8,18,.6);margin:10px 0}
+.m{padding:8px 12px;margin:6px 0;border-radius:10px;font-size:17px;line-height:1.4;max-width:88%}
+.m.me{background:color-mix(in srgb,var(--ac2) 25%,transparent);margin-left:auto;text-align:right}
+.m.ai{background:color-mix(in srgb,var(--ac) 18%,transparent)}
+.m.sys{font:13px 'Courier New',monospace;color:var(--dim)}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:20px}
+.bank{max-height:300px;overflow:auto;margin-top:8px;display:flex;flex-wrap:wrap}
+.key.sel{background:var(--ac);color:#001018;box-shadow:0 0 18px var(--ac)}
+input[type=checkbox]{width:auto;margin-right:8px;accent-color:var(--ac)}
+body{font-size:18px}html,body{font-family:Rajdhani,'Segoe UI',system-ui,sans-serif;font-weight:600}
+input,select,button{font-family:inherit}
+:root{--ac-soft:color-mix(in srgb,var(--ac) 35%,transparent)}
+@keyframes flow{to{background-position:300% 0}}
+h1{font-family:Orbitron,'Courier New',monospace;font-weight:900;letter-spacing:.14em;background:linear-gradient(90deg,var(--ac),#fff,var(--ac2),var(--ac));background-size:300% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;text-shadow:none;filter:drop-shadow(0 0 16px var(--ac));animation:flow 5s linear infinite,flick 6s infinite}
+.sub{font-family:Orbitron,monospace;font-size:13px}
+.panel{background:rgba(24,0,7,.42);border-color:var(--ac-soft);backdrop-filter:blur(10px) saturate(1.3)}
+.panel h2{font:800 19px Orbitron,'Courier New',monospace;letter-spacing:.2em;color:#fff;text-shadow:0 0 14px var(--ac);padding:9px 14px;border-left:4px solid var(--ac);background:linear-gradient(90deg,color-mix(in srgb,var(--ac) 28%,transparent),transparent)}
+.panel h2::before{content:'◢ ';color:var(--ac)}
+.clock{font-family:Orbitron,'Courier New',monospace;font-weight:900}
+.cd,.m.sys{font-family:'Share Tech Mono','Courier New',monospace}
+label{font-family:Orbitron,monospace;letter-spacing:.12em}
+.key{font:700 13px Orbitron,'Courier New',monospace;background:linear-gradient(180deg,#2a0510,#12020a);box-shadow:0 4px 0 #1a0007,0 0 10px var(--ac-soft)}
+.key.big{font-size:16px}.key.mini{font-size:11px}
+.key:hover{box-shadow:0 7px 0 #1a0007,0 0 28px var(--ac),0 0 56px var(--ac2)}
+select,input[type=text],input[type=number]{background:rgba(20,0,6,.7);border-color:#5a1424;font-weight:600}
+select option{background:#12020a;color:#fff}
+.bar{background:#2a0a12}#ailog{border-color:#5a1424;background:rgba(10,0,3,.55)}
+.grid>div:has(#voice){display:none}
+#feed{position:fixed;left:14px;bottom:calc(10px + env(safe-area-inset-bottom,0px));z-index:0;font:12px 'Share Tech Mono','Courier New',monospace;color:var(--ac);opacity:.55;pointer-events:none;line-height:1.5}
+@media(max-width:700px){#feed{display:none}}
+</style>
+</head>
+<body>
+<canvas id="bg"></canvas><div id="feed"></div>
+<div class="wrap">
+  <h1>STUDY COMMAND CENTER</h1>
+  <div class="sub" id="stat"><span class="dot"></span><span id="st">SYSTEM STANDBY</span></div>
+
+  <div class="panel">
+    <div class="clock" id="clk">00:00:00</div>
+    <div class="cd">NEXT TRANSMISSION IN <b id="cd">--:--</b></div>
+    <div class="bar"><i id="pg"></i></div>
+    <div class="quote" id="q">Press ENGAGE to activate the system.</div>
+    <div class="chips">
+      <button class="key big" id="eng">⏻ ENGAGE</button>
+      <button class="key" id="test">▶ TEST NOW</button>
+      <button class="key" id="snd">♪ SOUND ONLY</button>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2>// CONTROL MATRIX</h2>
+    <div class="grid">
+      <div><label>REMIND EVERY (MIN)</label><input type="number" id="int" min="1" max="720" value="60"></div>
+      <div><label>TECH SOUND</label><select id="sound"></select></div>
+      <div><label>VOICE PRESET</label><select id="preset"></select></div>
+      <div><label>SYSTEM VOICE</label><select id="voice"></select></div>
+      <div><label>ADDRESS ME AS</label><input type="text" id="nm"></div><div><label>NEON THEME</label><select id="theme"><option value="">Red Neon</option><option value="magenta">Magenta</option><option value="green">Matrix Green</option><option value="amber">Amber Alert</option></select></div>
+      <div><label>ORDER</label><select id="ord"><option value="r">Random</option><option value="s">In sequence</option></select></div>
+      <div><label>VOLUME</label><input type="range" id="vol" min="0" max="1" step=".05" value=".8"></div>
+      <div><label>PITCH</label><input type="range" id="pit" min="0.1" max="2" step=".05" value="1"></div>
+      <div><label>SPEED</label><input type="range" id="rate" min="0.5" max="1.6" step=".05" value="1"></div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2>// AI COMMAND CORE</h2>
+    <div class="chips" id="aichips" style="text-align:left"></div>
+    <div id="ailog"><div class="m ai">AI core online. Tell me anything: change sounds or voices, set the timer, write tasks, plan your day. Tap the mic to speak.</div></div>
+    <div class="row"><input type="text" id="aiq" placeholder="Ask the AI to do anything…"><button class="key" id="mic">🎤</button><button class="key" id="aisend">SEND ➤</button></div>
+    <label style="margin-top:8px"><input type="checkbox" id="aispk" checked>AI SPEAKS REPLIES</label>
+  </div>
+  <div class="panel">
+    <h2>// SOUND &amp; VOICE BANK (TAP TO SELECT)</h2>
+    <div class="grid2"><div><label>SOUNDS</label><input type="text" id="sbf" placeholder="Filter sounds…"><div class="bank" id="sb"></div></div><div><label>AI VOICES</label><input type="text" id="vbf" placeholder="Filter voices…"><div class="bank" id="vb"></div></div></div>
+  </div>
+  <div class="panel">
+    <h2>// MOTIVATION DATABASE (EDITABLE)</h2>
+    <div id="list"></div>
+    <div class="row"><input type="text" id="new" placeholder="Type a new motivational message…"><button class="key mini" id="add">＋ ADD</button></div>
+    <button class="key mini" id="reset">⟲ RESET DEFAULTS</button>
+  </div>
+
+  <div class="panel" id="vwp" style="grid-column:1/-1">
+    <h2>// VISION WATCH (CAMERA)</h2>
+    <div class="grid2">
+      <div style="position:relative">
+        <video id="vw" autoplay muted playsinline style="width:100%;max-height:320px;object-fit:cover;border-radius:10px;background:#000;transform:scaleX(-1)"></video>
+        <div id="vbadge" style="position:absolute;left:10px;top:10px;padding:6px 12px;border-radius:8px;font:700 14px 'Courier New',monospace;background:rgba(0,0,0,.7);color:#b08a92">● CAMERA OFF</div>
+      </div>
+      <div>
+        <div class="row"><button class="key big" id="vbtn">📷 START WATCH</button></div>
+        <div class="grid" style="margin-top:10px">
+          <div><label>ALERT AFTER (SEC)</label><input type="number" id="vgrace" min="3" max="120" value="8"></div>
+          <div><label>REPEAT EVERY (SEC)</label><input type="number" id="vrep" min="5" max="120" value="15"></div>
+          <div><label>TURN-AWAY SENSITIVITY</label><select id="vsens"><option value="0.4">Strict</option><option value="0.55" selected>Normal</option><option value="0.75">Relaxed</option></select></div>
+        </div>
+        <div class="note" id="vstats" style="margin-top:12px">Focused: 0m 0s · Times away: 0</div>
+        <div class="note" id="vmode">Video is processed on your device only. Nothing is uploaded or recorded.</div>
+      </div>
+    </div>
+  </div>
+  <div id="vov" style="display:none;position:fixed;inset:0;z-index:50;pointer-events:none;align-items:center;justify-content:center;text-align:center;font:900 clamp(28px,7vw,90px) 'Courier New',monospace;color:#fff;text-shadow:0 0 30px #ff1f3d,0 0 60px #ff1f3d;background:rgba(255,31,61,.22);box-shadow:inset 0 0 120px #ff1f3d;animation:vflash .8s infinite alternate">GET BACK<br>TO STUDY!</div>
+  <style>@keyframes vflash{to{background:rgba(255,31,61,.5)}}</style>
+
+  <div class="panel note">
+    <h2>// ALEXA LINK</h2>
+    Keep this page open on a phone or laptop and pair it with your Echo by Bluetooth (say “Alexa, pair”), and the voice and sounds play through Alexa. On an Echo Show, open this page in the Silk browser and tap ENGAGE once. Keep the tab open and the screen awake; browsers pause timers in closed tabs.
+  </div>
+</div>
+
+<script>
+const $=id=>document.getElementById(id);
+const DEF0=["Time to level up. Open your editor and write some code.","Every line of code you write builds your future career.","Hour check. Stop scrolling, start building.","Consistency beats talent. Study for twenty five focused minutes now.","You are becoming a developer. Solve one problem right now.","Your future self is watching. Make that person proud.","Push a commit today. Small progress is still progress.","Learn something new, build something real, ship it.","Discipline is the bridge between your goals and your career.","System alert: your tech career needs you at the keyboard."];
+const DEF=DEF0.concat(["Write a function that reverses a string without using built-ins.","Solve one LeetCode easy problem right now.","Read the documentation for one JavaScript method you have never used.","Build a small to-do app using only HTML, CSS and JavaScript.","Commit your code to GitHub with a clear message.","Practice typing code for ten minutes without looking at the keys.","Learn how arrays and objects differ in memory.","Update your LinkedIn headline to say what you are building.","Refactor yesterday’s code and make it cleaner.","Watch one tutorial at double speed, then rebuild it from memory.","Learn Git branching: create a branch, merge it, resolve a conflict.","Write five SQL queries using SELECT, WHERE and JOIN.","Learn what an API is, then call a public API with fetch.","Study Big O notation for twenty minutes.","Read someone else’s open source code for fifteen minutes.","Deploy a small project online today.","Write a README that explains your project like a professional.","Learn one new keyboard shortcut in your code editor.","Debug a problem without Googling for ten minutes first.","Explain a concept out loud as if teaching a beginner.","Create a portfolio page with three projects.","Learn Python lists, dictionaries and loops.","Build a calculator in Python.","Study how the internet works: DNS, HTTP and servers.","Complete one lesson on React components and props.","Take a five minute break, stretch, drink water, then return focused.","Write down your top three career goals for this year.","Apply to one internship or job opening today.","Message one developer on LinkedIn and ask for advice.","Learn the difference between let, const and var.","Write a unit test for one of your functions.","Learn how to use the browser developer tools.","Study binary search and implement it from scratch.","Build a weather app using a free API.","Learn CSS flexbox and grid by recreating a landing page.","Phone down. Notifications off. Twenty five minute focus sprint starts now.","Learn about recursion and write a factorial function.","Review your notes from yesterday before learning anything new.","Learn Linux command line basics: ls, cd, grep and chmod.","Study how databases store and index data.","Write a blog post about something you learned this week.","Learn how authentication works: sessions, cookies and tokens.","Build a simple REST API with Node and Express.","Learn what Docker is and run your first container.","Practice a mock technical interview question out loud.","Learn about stacks and queues, and code both.","Fix one bug that you have been avoiding.","Create a study schedule for the next seven days.","Learn how to read error messages carefully.","Progress check. Compare yourself to who you were last month, not to others.","Learn about hash maps and solve a problem with one.","Study promises and async await in JavaScript.","Build a quiz game in JavaScript.","Learn the basics of machine learning: what a model is and how it learns.","Write resume bullet points using action verbs and numbers.","Learn TypeScript types for ten minutes.","Contribute one small fix to an open source project.","Learn how to optimise an image heavy web page.","Practice a coding problem on paper, without a computer.","Sleep, food and exercise are part of your training. Take care of your system.","Study object oriented programming: classes, inheritance and encapsulation.","Build a chatbot using an AI API.","Learn what cloud computing is and explore a free tier.","Read about cyber security basics: passwords, hashing and encryption.","Learn to write clean function names and comments.","Set up a personal website with your own domain.","Rebuild a famous website homepage for practice.","Learn about linked lists and draw them on paper.","Practice your thirty second self introduction for interviews.","Study one system design concept: load balancers or caching.","Write a script that automates a boring task in your life.","Learn how responsive design works with media queries.","Watch a talk from a senior engineer and take notes.","Learn how to use Postman to test APIs.","Build a notes app that saves data in local storage.","Learn to read and write JSON files.","Keep your daily coding streak alive. Do not break the chain.","Learn about sorting algorithms and implement bubble sort.","Organise your project folders and clean up your desktop.","Visualise yourself as a software engineer in two years. Now earn it.","Learn MongoDB or PostgreSQL and create your first table.","Study how React hooks like useState and useEffect work.","Build a Pomodoro timer as a project.","Learn web accessibility and add alt text and labels.","Practice regular expressions with three small exercises.","Join a developer community and answer one question.","Learn basic data analysis with Python and pandas.","Write pseudocode before you write code for your next problem.","Learn about environment variables and keeping secrets safe.","Review your own code like a senior engineer would.","Learn the basics of trees and graphs.","Build a mini project in a language you have never used.","Take an online mock test and review every wrong answer.","Learn to measure performance and fix a slow function.","Teach what you learned today to a friend or a rubber duck.","Set your goal for tomorrow before you finish today.","Your competition is studying right now. So are you. Keep going.","Learn CI and CD and set up GitHub Actions for a project.","Celebrate small wins. You wrote more code than you did yesterday.","Mission critical: your tech career is built one focused hour at a time. Execute."]);
+const PRE0={"Classic Robot":[.3,.8],"Deep Core AI":[.1,.7],"Android":[.6,.95],"Cyber Girl":[1.8,1.1],"Tiny Bot":[2,1.35],"Glitch Drone":[.4,1.5],"Natural Human":[1,1]};
+const SND0=["Scanner","Power Up","Radar Ping","Red Alert","Data Stream","Warp Drive"];
+const PRE={};
+[["Jarvis",.85,.95,"m"],["Friday",1.25,1,"f"],["Robot",.3,.8],["Android",.6,.95],["Cyber",1.8,1.1],["Deep Core",.1,.7],["Glitch",.4,1.5],["Nova",1.5,.9],["Titan",.2,.85],["Sprite",2,1.3]].forEach(([n,p,r,g])=>{for(let i=1;i<=10;i++)PRE[n+" Mk-"+i]=[Math.min(2,Math.max(.1,+(p*(.85+i*.03)).toFixed(2))),Math.min(1.6,Math.max(.5,+(r*(.88+(i%5)*.05)).toFixed(2))),g]});
+Object.assign(PRE,PRE0);
+const gen=(n,p,r,g)=>{for(let i=1;i<=10;i++)PRE[n+' Mk-'+i]=[Math.min(2,Math.max(.1,+(p*(.85+i*.03)).toFixed(2))),Math.min(1.6,Math.max(.5,+(r*(.88+(i%5)*.05)).toFixed(2))),g]};
+[['Ultron',.15,.75,'US-m'],['Vision',.7,.9,'GB-m'],['Edith',1.4,.95,'GB-f'],['Karen',1.1,1,'AU-f'],['HAL 9000',.5,.6,'US-m'],['Optimus',.2,.8,'US-m'],['Guru Bot',.8,.9,'IN-m'],['Desi AI',1.2,1,'IN-f'],['Hologram',1.6,.85,'US-f'],['Alien',2,.6]].forEach(a=>gen(...a));
+for(const k in PRE)delete PRE[k];
+PRE['AI Female · Friday']=[1.25,1,'GB-f'];PRE['AI Male · Jarvis']=[.85,.97,'GB-m'];PRE['Robot · Core-X']=[.2,.8,'US-m'];
+const SG={},WV=["sine","square","sawtooth","triangle"],PT=["Arp Up","Arp Down","Sweep Up","Sweep Down","Ping","Alert","Burst","Chord","Pulse"],BS=[["Low",180],["Mid",440],["High",880]];
+PT.forEach((p,pi)=>WV.forEach(w=>BS.forEach(b=>SG[p+" · "+w+" · "+b[0]]=[pi,w,b[1]])));
+const SND=["🎲 Random"].concat(Object.keys(SG),SND0);
+let S={msgs:DEF.slice(),int:60,sound:"Arp Up · square · Mid",preset:"Jarvis Mk-3",name:"Sir",voice:"",theme:"",ord:"r",vol:.8,pit:null,rate:null};
+try{const x=JSON.parse(localStorage.getItem("scc")||"null");if(x)S=Object.assign(S,x)}catch(e){}
+if(S.v!==2){S.msgs=DEF.slice();S.preset="Jarvis Mk-3";S.sound="Arp Up · square · Mid";S.v=2}
+S.voice='';if(!PRE[S.preset])S.preset='AI Male · Jarvis';
+const save=()=>{try{localStorage.setItem("scc",JSON.stringify(S))}catch(e){}};
+
+// UI setup
+SND.forEach(s=>$("sound").add(new Option(s,s)));
+Object.keys(PRE).forEach(p=>$("preset").add(new Option(p,p)));
+let voices=[];
+function loadVoices(){voices=speechSynthesis.getVoices();const v=$("voice");v.innerHTML="";v.add(new Option("Auto (device default)",""));voices.forEach(x=>v.add(new Option(x.name+" ("+x.lang+")",x.name)));v.value=S.voice}
+try{loadVoices();speechSynthesis.onvoiceschanged=loadVoices}catch(e){}
+$("int").value=S.int;$("sound").value=S.sound;$("preset").value=S.preset;$("theme").value=S.theme;$("ord").value=S.ord;$("vol").value=S.vol;
+function applyPreset(){const p=PRE[S.preset];S.pit=p[0];S.rate=p[1];$("pit").value=p[0];$("rate").value=p[1]}
+applyPreset();
+$("nm").value=S.name;$("nm").onchange=e=>{S.name=e.target.value.trim();save()};
+function theme(){document.documentElement.dataset.t=S.theme}theme();
+$("int").onchange=e=>{S.int=Math.max(1,+e.target.value||60);if(on)schedule();save()};
+$("sound").onchange=e=>{S.sound=e.target.value;save();playSound()};
+$("preset").onchange=e=>{S.preset=e.target.value;applyPreset();save();speak("Voice preset "+S.preset+" online.")};
+$("voice").onchange=e=>{S.voice=e.target.value;save()};
+$("theme").onchange=e=>{S.theme=e.target.value;theme();save()};
+$("ord").onchange=e=>{S.ord=e.target.value;save()};
+$("vol").oninput=e=>{S.vol=+e.target.value;save()};
+$("pit").oninput=e=>{S.pit=+e.target.value};
+$("rate").oninput=e=>{S.rate=+e.target.value};
+
+// Message list
+function render(){const l=$("list");l.innerHTML="";S.msgs.forEach((m,i)=>{const r=document.createElement("div");r.className="row";const inp=document.createElement("input");inp.type="text";inp.value=m;inp.onchange=()=>{S.msgs[i]=inp.value;save()};const p=document.createElement("button");p.className="key mini";p.textContent="▶";p.onclick=()=>{sound();setTimeout(()=>say(S.msgs[i]),900)};const d=document.createElement("button");d.className="key mini";d.textContent="✕";d.onclick=()=>{S.msgs.splice(i,1);save();render()};r.append(inp,p,d);l.append(r)})}
+render();
+$("add").onclick=()=>{const v=$("new").value.trim();if(!v)return;S.msgs.push(v);$("new").value="";save();render();tone(900,0,.08,"square")};
+$("new").onkeydown=e=>{if(e.key==="Enter")$("add").click()};
+$("reset").onclick=()=>{S.msgs=DEF.slice();save();render()};
+
+// Audio
+let AC;
+function ctx(){if(!AC)AC=new(window.AudioContext||window.webkitAudioContext)();if(AC.state==="suspended")AC.resume();return AC}
+function tone(f,t,d,type,f2,v){const a=ctx(),o=a.createOscillator(),g=a.createGain(),n=a.currentTime+t;o.type=type||"sine";o.frequency.setValueAtTime(f,n);if(f2)o.frequency.exponentialRampToValueAtTime(f2,n+d);const vol=(v||.3)*S.vol;g.gain.setValueAtTime(0.0001,n);g.gain.exponentialRampToValueAtTime(Math.max(vol,.0002),n+.02);g.gain.exponentialRampToValueAtTime(.0001,n+d);o.connect(g).connect(a.destination);o.start(n);o.stop(n+d+.05)}
+function playSound(){let s=S.sound;if(s==="🎲 Random"){const k=Object.keys(SG);s=k[Math.floor(Math.random()*k.length)]}const g=SG[s];if(!g)return playSound0();const[p,w,f]=g;
+if(p==0)[1,1.25,1.5,2,3].forEach((m,i)=>tone(f*m,i*.09,.22,w,null,.2));
+else if(p==1)[3,2,1.5,1.25,1].forEach((m,i)=>tone(f*m,i*.09,.22,w,null,.2));
+else if(p==2)tone(f,0,.7,w,f*8,.2);
+else if(p==3)tone(f*8,0,.7,w,f,.2);
+else if(p==4){tone(f*3,0,.5,w,null,.3);tone(f*3,.6,.5,w,null,.2)}
+else if(p==5){for(let i=0;i<4;i++)tone(i%2?f*2:f*3,i*.2,.18,w,null,.2)}
+else if(p==6){for(let i=0;i<12;i++)tone(f*(1+Math.random()*5),i*.05,.05,w,null,.12)}
+else if(p==7)[1,1.25,1.5].forEach(m=>tone(f*m,0,.8,w,null,.15));
+else for(let i=0;i<5;i++)tone(f*2,i*.12,.06,w,null,.25)}
+function playSound0(){const s=S.sound;
+ if(s==="Scanner"){tone(200,0,.8,"sawtooth",1800,.2);tone(1800,.8,.3,"sine",300,.2)}
+ else if(s==="Power Up"){[261,329,392,523,784].forEach((f,i)=>tone(f,i*.09,.25,"square",null,.18));tone(1046,.5,.5,"sine",null,.25)}
+ else if(s==="Radar Ping"){tone(1300,0,.5,"sine",null,.4);tone(1300,.6,.5,"sine",null,.3)}
+ else if(s==="Red Alert"){for(let i=0;i<4;i++)tone(i%2?660:880,i*.2,.18,"sawtooth",null,.2)}
+ else if(s==="Data Stream"){for(let i=0;i<14;i++)tone(600+Math.random()*1800,i*.05,.05,"square",null,.12)}
+ else{tone(60,0,1.1,"sine",600,.5);tone(300,.2,.9,"sawtooth",1600,.1)}}
+function sound(){try{playSound()}catch(e){}}
+function say(t){try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t);let v=voices.find(x=>x.name===S.voice)||pickV();const pg=PRE[S.preset]&&PRE[S.preset][2];if(!v&&pg){const rx=pg==="f"?/female|susan|hazel|kate|serena|libby|sonia|fiona/i:/(^|\W)male|daniel|george|ryan|arthur|oliver/i;v=voices.find(x=>/en-GB/i.test(x.lang)&&rx.test(x.name))||voices.find(x=>/en-GB/i.test(x.lang))}if(v)u.voice=v;u.pitch=S.pit;u.rate=S.rate;u.volume=Math.min(1,S.vol+.2);speechSynthesis.speak(u)}catch(e){}}
+function speak(t){say(t)}
+$("snd").onclick=sound;
+
+// Reminder engine
+let on=false,next=0,idx=0,wl=null;
+function pick(){if(!S.msgs.length)return"Time to study.";if(S.ord==="s")return S.msgs[idx++%S.msgs.length];return S.msgs[Math.floor(Math.random()*S.msgs.length)]}
+function fire(){const m=pick();$("q").textContent="▌"+m;sound();setTimeout(()=>say(S.name?"Attention, "+S.name+". "+m:m),1100)}
+function schedule(){next=Date.now()+S.int*60000}
+$("test").onclick=fire;
+$("eng").onclick=async()=>{on=!on;ctx();const b=$("eng");b.classList.toggle("live",on);b.textContent=on?"■ DISENGAGE":"⏻ ENGAGE";$("stat").classList.toggle("on",on);$("st").textContent=on?"SYSTEM ONLINE · TRANSMITTING":"SYSTEM STANDBY";
+ if(on){schedule();fire();try{wl=await navigator.wakeLock.request("screen")}catch(e){}}else{try{wl&&wl.release()}catch(e){}$("cd").textContent="--:--";$("pg").style.width="0"}};
+const p2=n=>String(n).padStart(2,"0");
+setInterval(()=>{const d=new Date();$("clk").textContent=p2(d.getHours())+":"+p2(d.getMinutes())+":"+p2(d.getSeconds());
+ if(on){const left=Math.max(0,next-Date.now());const s=Math.ceil(left/1000);$("cd").textContent=p2(Math.floor(s/60))+":"+p2(s%60);$("pg").style.width=(100-left/(S.int*60000)*100)+"%";if(left<=0){fire();schedule()}}},1000);
+
+// Live background
+const cv=$("bg"),c=cv.getContext("2d");let W,H,P=[],mx=-999,my=-999;
+function size(){W=cv.width=innerWidth;H=cv.height=innerHeight;P=Array.from({length:Math.min(110,Math.floor(W*H/12000))},()=>({x:Math.random()*W,y:Math.random()*H,vx:(Math.random()-.5)*.6,vy:(Math.random()-.5)*.6}))}
+size();addEventListener("resize",size);
+addEventListener("pointermove",e=>{mx=e.clientX;my=e.clientY});
+const cols=[];const CH="01{}<>/;=+*#$アイウエオカキクケコ";
+function col(){return getComputedStyle(document.documentElement).getPropertyValue("--ac").trim()||"#00f0ff"}
+let tick=0,ac=col();
+function frame(){tick++;if(tick%60===0)ac=col();
+ c.fillStyle="rgba(5,0,3,.2)";c.fillRect(0,0,W,H);
+ const fs=16,n=Math.floor(W/fs);while(cols.length<n)cols.push(Math.random()*H/fs);
+ c.font=fs+"px monospace";c.globalAlpha=.22;c.fillStyle=ac;
+ for(let i=0;i<n;i++){c.fillText(CH[Math.floor(Math.random()*CH.length)],i*fs,cols[i]*fs);cols[i]=(cols[i]*fs>H&&Math.random()>.975)?0:cols[i]+.5}
+ c.globalAlpha=1;
+ for(const p of P){const dx=p.x-mx,dy=p.y-my,d=Math.hypot(dx,dy);if(d<120){p.vx+=dx/d*.08;p.vy+=dy/d*.08}p.vx*=.99;p.vy*=.99;p.x+=p.vx;p.y+=p.vy;if(p.x<0||p.x>W)p.vx*=-1;if(p.y<0||p.y>H)p.vy*=-1;
+  c.beginPath();c.arc(p.x,p.y,1.8,0,7);c.fillStyle=ac;c.fill()}
+ for(let i=0;i<P.length;i++)for(let j=i+1;j<P.length;j++){const d=Math.hypot(P[i].x-P[j].x,P[i].y-P[j].y);if(d<110){c.globalAlpha=(1-d/110)*.5;c.strokeStyle=ac;c.beginPath();c.moveTo(P[i].x,P[i].y);c.lineTo(P[j].x,P[j].y);c.stroke()}}
+ const PU=window.PU||(window.PU=[]);
+if(Math.random()<.15){const a=P[Math.floor(Math.random()*P.length)],b=P[Math.floor(Math.random()*P.length)];if(a&&b&&Math.hypot(a.x-b.x,a.y-b.y)<160)PU.push({a,b,t:0})}
+for(const u of PU){u.t+=.03;c.fillStyle='#fff';c.shadowBlur=14;c.shadowColor=ac;c.beginPath();c.arc(u.a.x+(u.b.x-u.a.x)*u.t,u.a.y+(u.b.y-u.a.y)*u.t,3,0,7);c.fill();c.shadowBlur=0}
+PU.splice(0,PU.length,...PU.filter(u=>u.t<1));
+const tt=tick/60;c.save();c.translate(W*.84,H*.3);c.strokeStyle=ac;c.lineWidth=2;c.globalAlpha=.3;[90,130,170].forEach((r,i)=>{const s=tt*(i%2?-1:1);c.beginPath();c.arc(0,0,r,s,s+4.2);c.stroke()});c.restore();
+c.globalAlpha=1;requestAnimationFrame(frame)}
+frame();
+
+const fd=$('feed'),LN=['loading transformer layers','compiling attention heads','tokens/s ','loss ','syncing gradients','indexing knowledge graph','allocating memory blocks','planning next task','optimizing study schedule','neural core stable'];
+setInterval(()=>{let l=LN[Math.floor(Math.random()*LN.length)];if(l.endsWith(' '))l+=(Math.random()*(l.startsWith('loss')?.1:9000)).toFixed(l.startsWith('loss')?4:0);const d=document.createElement('div');d.textContent='['+new Date().toTimeString().slice(0,8)+'] '+l;fd.append(d);while(fd.children.length>9)fd.firstChild.remove()},700);
+// ===== BANKS =====
+let drawS,drawV,hist=[],SMP=null;
+function bank(id,list,get,set){const box=$(id),f=$(id+'f');function draw(){const q=f.value.toLowerCase();box.innerHTML='';list.filter(x=>x.toLowerCase().includes(q)).forEach(x=>{const b=document.createElement('button');b.className='key mini'+(get()===x?' sel':'');b.textContent=x;b.onclick=()=>set(x);box.append(b)})}f.oninput=draw;draw();return draw}
+drawS=bank('sb',SND,()=>S.sound,x=>{S.sound=x;$('sound').value=x;save();sound();drawS()});
+drawV=bank('vb',Object.keys(PRE),()=>S.preset,x=>{S.preset=x;applyPreset();$('preset').value=x;save();say('Voice '+x+' online.');drawV()});
+function pickV(){const pg=PRE[S.preset]&&PRE[S.preset][2];if(S.voice||!pg)return null;const[lc,gd]=pg.includes('-')?pg.split('-'):['GB',pg];const rx=gd==='f'?/female|susan|hazel|kate|serena|libby|sonia|fiona|zira|samantha|heera|neerja/i:/(^|\W)male|daniel|george|ryan|arthur|oliver|david|mark|ravi|rishi|james|liam/i;const ok=x=>x.lang.replace('_','-').toUpperCase().endsWith('-'+lc);return voices.find(x=>ok(x)&&rx.test(x.name))||voices.find(ok)||null}
+
+// ===== AI CORE =====
+const log=$('ailog'),FAM=[...new Set(Object.keys(PRE).map(k=>k.replace(/ Mk-\d+$/,'')))].join(', ');
+function addLog(t,c){const d=document.createElement('div');d.className='m '+c;d.textContent=t;log.append(d);log.scrollTop=log.scrollHeight;return d}
+function syncUI(){$('int').value=S.int;$('sound').value=S.sound;$('preset').value=S.preset;$('theme').value=S.theme;$('ord').value=S.ord;$('vol').value=S.vol;$('pit').value=S.pit;$('rate').value=S.rate;$('nm').value=S.name;theme();render();drawS();drawV();save()}
+const fnd=(L,n)=>{n=String(n||'').toLowerCase();return L.find(x=>x.toLowerCase()===n)||L.find(x=>x.toLowerCase().includes(n))};
+const items=a=>(Array.isArray(a.items)?a.items:[]).map(String).slice(0,100);
+function act(a){try{switch(a.do){
+case 'set_interval':S.int=Math.max(1,Math.min(720,+a.min||60));if(on)schedule();return 'Interval '+S.int+' min';
+case 'set_sound':{const x=fnd(SND,a.name);if(!x)return 'Sound not found';S.sound=x;setTimeout(()=>{syncUI();sound()},50);return 'Sound '+x}
+case 'set_voice':{const x=fnd(Object.keys(PRE),a.name);if(!x)return 'Voice not found';S.preset=x;applyPreset();return 'Voice '+x}
+case 'set_pitch':S.pit=Math.max(.1,Math.min(2,+a.value||1));return 'Pitch '+S.pit;
+case 'set_rate':S.rate=Math.max(.5,Math.min(1.6,+a.value||1));return 'Speed '+S.rate;
+case 'set_volume':S.vol=Math.max(0,Math.min(1,+a.value));return 'Volume '+S.vol;
+case 'set_name':S.name=String(a.value||'');return 'Name '+S.name;
+case 'set_theme':S.theme=['magenta','green','amber'].includes(a.value)?a.value:'';return 'Theme '+(S.theme||'cyan');
+case 'set_order':S.ord=a.value==='s'?'s':'r';return 'Order '+S.ord;
+case 'add_tasks':{const k=items(a);S.msgs.push(...k);return 'Added '+k.length+' tasks'}
+case 'replace_tasks':{const k=items(a);if(k.length)S.msgs=k;return 'Task list replaced ('+k.length+')'}
+case 'remove_tasks':{const c=String(a.contains||'').toLowerCase(),n=S.msgs.length;if(c)S.msgs=S.msgs.filter(m=>!m.toLowerCase().includes(c));return 'Removed '+(n-S.msgs.length)+' tasks'}
+case 'engage':if(!on)$('eng').click();return 'Engaged';
+case 'stop':if(on)$('eng').click();return 'Stopped';
+case 'fire_now':fire();return 'Transmitting';
+}}catch(e){}return 'Skipped '+a.do}
+function brief(){return `You are the AI core of a futuristic Study Command Center web app. Personality: Jarvis, loyal, concise, motivating. You control the app. Return ONLY a JSON object with keys reply (string, max 2 short spoken sentences) and actions (array of objects, each with a do key).
+Available actions: set_interval{min}, set_sound{name}, set_voice{name}, set_pitch{value 0.1-2}, set_rate{value 0.5-1.6}, set_volume{value 0-1}, set_name{value}, set_theme{value: cyan|magenta|green|amber}, set_order{value: r for random or s for sequence}, add_tasks{items}, replace_tasks{items}, remove_tasks{contains}, engage, stop, fire_now.
+Sound names look like Arp Up · square · Mid (patterns: ${PT.join(', ')}; waves: sine, square, sawtooth, triangle; ranges: Low, Mid, High) or the name 🎲 Random. Voice names (only these three exist): ${FAM}.
+Tasks must be short imperative spoken sentences, max 20 words. If nothing needs changing use an empty actions array. Never invent action names.
+CURRENT STATE: ${JSON.stringify({interval:S.int,sound:S.sound,voice:S.preset,name:S.name,theme:S.theme||'cyan',order:S.ord,volume:S.vol,running:on,taskCount:S.msgs.length,lastTasks:S.msgs.slice(-5)})}`}
+async function ask(text){addLog(text,'me');
+if(!SMP){try{SMP=window.claude?await window.claude.use('sample'):null}catch(e){}}
+if(!SMP){addLog('The AI works when this page is opened signed in on claude.ai.','sys');return}
+const th=addLog('Thinking…','ai');
+try{const r=await SMP.json(hist.slice(-8).concat([{role:'user',content:brief()+'\nUSER REQUEST: '+text}]),{cache:false});
+const done=(Array.isArray(r.actions)?r.actions:[]).map(act);th.textContent=r.reply||'Done.';if(done.length)addLog('⚙ '+done.join(' · '),'sys');
+hist.push({role:'user',content:text},{role:'assistant',content:r.reply||'Done.'});syncUI();if($('aispk').checked&&r.reply)say(r.reply)}
+catch(e){th.textContent='AI error: '+(e&&e.message||e)}}
+function send(){const t=$('aiq').value.trim();if(!t)return;$('aiq').value='';ask(t)}
+$('aisend').onclick=send;$('aiq').onkeydown=e=>{if(e.key==='Enter')send()};
+['Plan my study day and set everything up','Add 20 new Python tasks','Make reminders every 20 minutes and more intense','Pick the coolest Jarvis voice and a sci-fi sound','Add 15 interview prep tasks','Switch to green matrix theme'].forEach(t=>{const b=document.createElement('button');b.className='key mini';b.textContent=t;b.onclick=()=>ask(t);$('aichips').append(b)});
+const SR=window.SpeechRecognition||window.webkitSpeechRecognition;let rec;
+$('mic').onclick=()=>{if(!SR){addLog('Voice input needs Chrome or Edge.','sys');return}if(rec){rec.stop();return}rec=new SR();rec.lang=navigator.language||'en-IN';rec.onresult=e=>{$('aiq').value=e.results[0][0].transcript;send()};rec.onend=()=>{rec=null;$('mic').classList.remove('live')};$('mic').classList.add('live');rec.start()};
+</script>
+<script>
+(function(){
+const g=id=>document.getElementById(id);
+const v=g('vw'),btn=g('vbtn'),badge=g('vbadge'),ov=g('vov');
+let stream=null,det=null,timer=null,basic=false;
+let lastSeen=0,alerting=false,nextAlert=0,reason='away',away=0,focusMs=0,lastTick=0,prev=null,lastMove=0;
+const cv=document.createElement('canvas');cv.width=64;cv.height=48;const cx=cv.getContext('2d',{willReadFrequently:true});
+const setBadge=(t,c)=>{badge.textContent=t;badge.style.color=c;badge.style.borderLeft='4px solid '+c};
+const nm=()=>(S.name||'Sir');
+const LINES={away:[()=>nm()+", you have left your post. Get back to study now.",()=>"Where did you go, "+nm()+"? Return to your desk immediately.",()=>nm()+", the books will not study themselves. Come back."],
+look:[()=>nm()+", eyes on the screen. Focus up.",()=>"You are looking away, "+nm()+". Back to work.",()=>nm()+", stop getting distracted and focus."]};
+const pick=a=>a[Math.floor(Math.random()*a.length)]();
+function fmt(ms){const s=Math.floor(ms/1000);return Math.floor(s/60)+'m '+(s%60)+'s'}
+function stats(){g('vstats').textContent='Focused: '+fmt(focusMs)+' · Times away: '+away}
+function fire(){ov.style.display='flex';try{playSound()}catch(e){}setTimeout(()=>{try{say(pick(LINES[reason]))}catch(e){}},500)}
+function sample(){
+  const now=Date.now();
+  if(!det){basic=true}
+  if(det&&!basic){
+    let r;try{r=det.detectForVideo(v,performance.now())}catch(e){return{face:false}}
+    const d=r.detections&&r.detections[0];
+    if(!d||!d.keypoints||d.keypoints.length<3)return{face:false};
+    const k=d.keypoints,eyes=Math.abs(k[0].x-k[1].x);
+    if(eyes<0.015)return{face:true,ok:false};
+    const yaw=Math.abs((k[2].x-(k[0].x+k[1].x)/2)/eyes);
+    return{face:true,ok:yaw<parseFloat(g('vsens').value)};
+  }
+  cx.drawImage(v,0,0,64,48);const px=cx.getImageData(0,0,64,48).data,cur=new Uint8Array(64*48);
+  for(let i=0;i<cur.length;i++)cur[i]=(px[i*4]+px[i*4+1]+px[i*4+2])/3;
+  let diff=0;if(prev)for(let i=0;i<cur.length;i++)diff+=Math.abs(cur[i]-prev[i]);prev=cur;
+  if(diff/cur.length>2.2)lastMove=now;
+  const ok=now-lastMove<20000;return{face:ok,ok:ok};
+}
+function tick(){
+  if(!v.videoWidth)return;
+  const now=Date.now(),dt=lastTick?now-lastTick:0;lastTick=now;
+  const s=sample(),grace=Math.max(3,+g('vgrace').value||8)*1000*(basic?2.5:1);
+  if(s.ok){
+    lastSeen=now;focusMs+=dt;
+    if(alerting){alerting=false;ov.style.display='none';try{say("Good. Welcome back, "+nm()+". Keep going.")}catch(e){}}
+    setBadge('● FOCUSED','#39ff88');
+  }else{
+    reason=s.face?'look':'away';
+    const gap=now-lastSeen;
+    setBadge(s.face?'● LOOKING AWAY':'● NOT DETECTED',gap>grace?'#ff1f3d':'#ffb400');
+    if(gap>grace){
+      if(!alerting){alerting=true;away++;nextAlert=now}
+      if(now>=nextAlert){fire();nextAlert=now+Math.max(5,+g('vrep').value||15)*1000}
+    }
+  }
+  stats();
+}
+async function loadDetector(){
+  g('vmode').textContent='Loading face detection model…';
+  try{
+    const B='https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14';
+    const m=await import(B+'/vision_bundle.mjs');
+    const fs=await m.FilesetResolver.forVisionTasks(B+'/wasm');
+    det=await m.FaceDetector.createFromOptions(fs,{baseOptions:{modelAssetPath:'https://storage.googleapis.com/mediapipe-models/face_detector/blaze_face_short_range/float16/1/blaze_face_short_range.tflite'},runningMode:'VIDEO',minDetectionConfidence:.5});
+    basic=false;g('vmode').textContent='Face detection active: detects when you leave or turn your head away. Video stays on your device.';
+  }catch(e){
+    det=null;basic=true;g('vmode').textContent='Face model could not load (offline?). Using basic motion mode: alerts only if you are completely still or gone for a long time.';
+  }
+}
+async function start(){
+  try{stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'user',width:640,height:480},audio:false})}
+  catch(e){g('vmode').textContent='Camera blocked. Allow camera access in the browser address bar and try again. (Opening the file through http://localhost can help.)';return}
+  v.srcObject=stream;await v.play().catch(()=>{});
+  btn.textContent='■ STOP WATCH';btn.classList.add('live');
+  lastSeen=Date.now();lastMove=lastSeen;lastTick=0;prev=null;alerting=false;
+  try{if(window.speechSynthesis){speechSynthesis.speak(new SpeechSynthesisUtterance(''))}}catch(e){}
+  if(!det)await loadDetector();
+  timer=setInterval(tick,400);
+}
+function stop(){
+  clearInterval(timer);timer=null;if(stream)stream.getTracks().forEach(t=>t.stop());stream=null;v.srcObject=null;
+  alerting=false;ov.style.display='none';btn.textContent='📷 START WATCH';btn.classList.remove('live');setBadge('● CAMERA OFF','#b08a92');
+}
+btn.onclick=()=>stream?stop():start();
+})();
+</script>
+</body>
+</html>
